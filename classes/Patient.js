@@ -9,12 +9,17 @@ class Patient {
 	// 	this.birthdate = birthdate; // string: format "yyyymmdd"
 	// 	this.studies = [];
 	// }
-	constructor(dcmDS) {
+	constructor(dcmDS, tag = -1) {
+		this.tag = tag;
 		this.id = dcmDS.string(DcmElmt.PatientID.Tag);
 		this.name = dcmDS.string(DcmElmt.PatientName.Tag);
 		this.sex = dcmDS.string(DcmElmt.PatientSex.Tag);
 		this.birthdate = dcmDS.string(DcmElmt.PatientBirthDate.Tag);
-		this.studies = [];
+		this.studyInfos = [];
+	}
+
+	addStudy(study) {
+		return !study ? -1 : this.studyInfos.push(study) - 1;
 	}
 
 	getAge() {
