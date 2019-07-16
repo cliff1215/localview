@@ -8,7 +8,7 @@ class DcmImage {
 
 		this.instUID = dcmDS.string(DcmElmt.SOPInstanceUID.Tag);
 		this.number = dcmDS.string(DcmElmt.InstanceNumber.Tag);
-		this.byresPerPixel = dcmDS.string(DcmElmt.byresPerPixel.Tag);
+		this.samplePerPixel = dcmDS.string(DcmElmt.SamplesPerPixel.Tag);
 		this.photoInterpretation = dcmDS.string(DcmElmt.PhotometricInterpretation.Tag);
 		this.rows = dcmDS.string(DcmElmt.Rows.Tag);
 		this.cols = dcmDS.string(DcmElmt.Columns.Tag);

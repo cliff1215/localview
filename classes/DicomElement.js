@@ -24,7 +24,7 @@ const DicomElement = {
 		Desc: 'Patient Sex'
 	},
 	StudyInstanceUID: {
-		Tag: 'x0020000D',
+		Tag: 'x0020000d',
 		VR: 'UI',
 		VM: '1',
 		Desc: 'Study Instance UID'
@@ -78,7 +78,7 @@ const DicomElement = {
 		Desc: 'Institution Name'
 	},
 	SeriesInstanceUID: {
-		Tag: 'x0020000E',
+		Tag: 'x0020000e',
 		VR: 'UI',
 		VM: '1',
 		Desc: 'Series Instance UID'
@@ -102,7 +102,7 @@ const DicomElement = {
 		Desc: 'Series Number'
 	},
 	SeriesDescription: {
-		Tag: 'x0008103E',
+		Tag: 'x0008103e',
 		VR: 'LO',
 		VM: '1',
 		Desc: 'Series Description'

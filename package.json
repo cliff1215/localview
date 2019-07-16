@@ -4,12 +4,14 @@
 	"description": "local dicom viewer",
 	"main": "main.js",
 	"scripts": {
-		"start": "electron ."
+		"start": "electron .",
+		"test": "jest"
 	},
 	"author": "ischoi",
 	"license": "ISC",
 	"devDependencies": {
-		"electron": "^5.0.6"
+		"electron": "^5.0.6",
+		"jest": "^24.8.0"
 	},
 	"dependencies": {
 		"dicom-parser": "^1.8.3",

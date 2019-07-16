@@ -3,6 +3,58 @@ const { dialog } = require('electron').remote;
 
 const Utils = require('./classes/Utils');
 const Patient = require('./classes/Patient');
+const AppData = require('./classes/AppData');
+
+let appData = new AppData();
+
+let showStudyList = (studylist) => {
+	if (!studylist.length) {
+		return;
+	}
+
+	let domElmt = document.getElementById('study-list');
+
+	let htmlString = `
+        <table class='table table-hover'>
+            <thead class='thead-dark'>
+                <tr>
+                <th scope="col">#</th>
+                <th scope="col">ID</th>
+                <th scope="col">Name</th>
+                <th scope="col">Age</th>
+                <th scope="col">Sex</th>
+                <th scope="col">Modality</th>
+                <th scope="col">Study Name</th>
+                <th scope="col">Study Date</th>
+                <th scope="col">Bodypart</th>
+                <th scope="col">Series</th>
+                <th scope="col">Images</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+	for (let study of studylist) {
+		htmlString += `
+            <tr>
+                <th scope="row">${study.tag}</th>
+                <td>${study.patInfo.id}</td>
+                <td>${study.patInfo.name}</td>
+                <td>${study.patInfo.getAge()}</td>
+                <td>${study.patInfo.sex}</td>
+                <td>${study.modal}</td>
+                <td>${study.desc}</td>
+                <td>${study.date}</td>
+                <td>${study.bodypart}</td>
+                <td>${study.seriesInfos.length}</td>
+                <td>${study.getImageCount()}</td>
+            </tr>
+        `;
+	}
+	htmlString += `</tbody></table>`;
+
+	domElmt.innerHTML = htmlString;
+};
 
 document.getElementById('selFolder').addEventListener('click', (event) => {
 	dialog.showOpenDialog({ properties: [ 'openDirectory' ] }, (filePaths, bookmarks) => {
@@ -15,15 +67,9 @@ document.getElementById('selFolder').addEventListener('click', (event) => {
 			if (err) {
 				console.log(err);
 			} else {
-				console.log(res[0]);
-
-				// let patient = new Patient('12349876', 'Iksoo Choi', 'M', '19701215');
-				// console.log(patient);
-				// console.log(patient.getAge());
-				let dcmDS = await Utils.getDicomDataSet(res[0]);
-				let patient = new Patient(dcmDS);
-				console.log(patient);
-				console.log(patient.getAge());
+				appData.clear();
+				await appData.setStudyListFromFiles(res);
+				showStudyList(appData.studyList);
 			}
 		});
 	});

@@ -1,6 +1,13 @@
 const DcmElmt = require('./DicomElement');
 
 class Study {
+	/**
+     *Creates an instance of Study.
+     * @param {DicomDataSet} dcmDS - DicomDataSet from dicom-parser module
+     * @param {Patient} [patInfo=null] - Patient object
+     * @param {int} [tag=-1] - this object tag
+     * @memberof Study
+     */
 	constructor(dcmDS, patInfo = null, tag = -1) {
 		this.patInfo = patInfo;
 		this.tag = tag;
@@ -18,6 +25,12 @@ class Study {
 		this.seriesInfos = [];
 	}
 
+	/**
+     * Get the number of all images in the study
+     *
+     * @return {int} count - total image count
+     * @memberof Study
+     */
 	getImageCount() {
 		let count = 0;
 		for (let series of this.seriesInfos) {
@@ -26,6 +39,12 @@ class Study {
 		return count;
 	}
 
+	/**
+     * Get the thumbnail image array in the study
+     *
+     * @return {DcmImage[]} thumbImages - thumbnail images
+     * @memberof Study
+     */
 	getThumbImages() {
 		let thumbImages = [];
 		for (let series of this.seriesInfos) {

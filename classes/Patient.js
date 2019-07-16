@@ -9,6 +9,12 @@ class Patient {
 	// 	this.birthdate = birthdate; // string: format "yyyymmdd"
 	// 	this.studies = [];
 	// }
+	/**
+     * Creates an instance of Patient.
+     * @param {DicomDataSet} dcmDS - DicomDataSet from dicom-parser module
+     * @param {int} [tag=-1] - this object tag
+     * @memberof Patient
+     */
 	constructor(dcmDS, tag = -1) {
 		this.tag = tag;
 		this.id = dcmDS.string(DcmElmt.PatientID.Tag);
@@ -22,6 +28,12 @@ class Patient {
 		return !study ? -1 : this.studyInfos.push(study) - 1;
 	}
 
+	/**
+     * Calculate age based on the birthdate and retrun age string
+     *
+     * @return {string} age
+     * @memberof Patient
+     */
 	getAge() {
 		let birthdate = Utils.getDateStringWithHypens(this.birthdate);
 		if (birthdate === '') {
