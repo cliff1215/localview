@@ -5,16 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Local Dicom Viewer</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
 </head>
 <body>
     <div class="container">
-        <h1>Local Dicom Viewer</h1>
-        <button id="selFolder">Select Folder</button>
-        <div id="study-list" class="row">
-
+        <hr>
+        <div class="row">
+            <button id="selFolder" type="button" class="btn btn-primary">
+                Select Folder
+            </button>
+            <h5 class="ml-3 mt-2">
+                <span id="selected-folder-name" class="badge badge-secondary py-2"></span>
+            </h5>
         </div>
+        <hr>
+        <div id="study-list" class="row">
+        </div>
+
+        <!-- Button trigger modal -->
+        <button id="show-modal" type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" style="display: none;">
+            Launch demo modal
+        </button>    
+        <!-- Modal -->
+        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="progress" style="height: 20px;">
+                        <div id="modal-progressbar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                            0%
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="modal-close" type="button" class="btn btn-secondary" data-dismiss="modal" style="display: none;">Close</button>
+                    <button id="modal-cancel" type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+                </div>
+                </div>
+            </div>
+        </div>
+
     </div>
+
 
     <script>
         require("./index.js");

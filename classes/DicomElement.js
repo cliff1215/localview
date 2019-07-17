@@ -194,8 +194,3 @@ const DicomElement = {
 };
 
 module.exports = DicomElement;
-
-//        '(0028,1050)': {'tag': '(0028,1050)', 'vr': 'DS', 'vm': '1-n', 'name': 'WindowCenter'},
-// '(0028,1051)': {'tag': '(0028,1051)', 'vr': 'DS', 'vm': '1-n', 'name': 'WindowWidth'},
-// '(0028,1052)': {'tag': '(0028,1052)', 'vr': 'DS', 'vm': '1', 'name': 'RescaleIntercept'},
-// '(0028,1053)': {'tag': '(0028,1053)', 'vr': 'DS', 'vm': '1', 'name': 'RescaleSlope'},

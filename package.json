@@ -14,7 +14,10 @@
 		"jest": "^24.8.0"
 	},
 	"dependencies": {
+		"bootstrap": "^4.3.1",
 		"dicom-parser": "^1.8.3",
-		"glob": "^7.1.4"
+		"glob": "^7.1.4",
+		"jquery": "^3.4.1",
+		"popper.js": "^1.15.0"
 	}
 }
