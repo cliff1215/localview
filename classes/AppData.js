@@ -111,16 +111,16 @@ class AppData {
 		return null;
 	}
 
-	async setStudyListFromFiles(filenames) {
-		for (let filename of filenames) {
-			let dcmDS = await Utils.getDicomDataSet(filename);
+	// async setStudyListFromFiles(filenames) {
+	// 	for (let filename of filenames) {
+	// 		let dcmDS = await Utils.getDicomDataSet(filename);
 
-			let temp = this.findOrCreatePatient(dcmDS);
-			temp = this.findOrCreateStudy(dcmDS, temp);
-			temp = this.findOrCreateSeries(dcmDS, temp);
-			this.findOrCreateDcmImage(dcmDS, temp, filename);
-		}
-	}
+	// 		let temp = this.findOrCreatePatient(dcmDS);
+	// 		temp = this.findOrCreateStudy(dcmDS, temp);
+	// 		temp = this.findOrCreateSeries(dcmDS, temp);
+	// 		this.findOrCreateDcmImage(dcmDS, temp, filename);
+	// 	}
+	// }
 }
 
 module.exports = AppData;
