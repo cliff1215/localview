@@ -6,6 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Local Dicom Viewer</title>
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="node_modules/datatables.net-bs4/css/dataTables.bootstrap4.min.css">
+    <style>
+        table.dataTable tbody tr.selected {
+            background-color: #acbad4;
+        }
+    </style>
 </head>
 <body>
     <div class="container-fluid">
@@ -19,8 +25,28 @@
             </h5>
         </div>
         <hr>
-        <div id="study-list" class="row mx-3">
-        </div>
+        <!-- <div id="study-list" class="row mx-3">
+        </div> -->
+        <p id="table-information">No data</p>
+        <table id='study-datatable' class="table table-hover table-striped" style="width:100%">
+            <thead class='thead-dark'>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Age</th>
+                    <th scope="col">Sex</th>
+                    <th scope="col">Modality</th>
+                    <th scope="col">Study Name</th>
+                    <th scope="col">Study Date</th>
+                    <th scope="col">Bodypart</th>
+                    <th scope="col">Series</th>
+                    <th scope="col">Images</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
 
         <!-- Button trigger modal -->
         <button id="show-modal" type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" style="display: none;">

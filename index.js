@@ -7,6 +7,9 @@ const AppData = require('./classes/AppData');
 window.$ = window.jQuery = require('jquery');
 window.Bootstrap = require('bootstrap');
 
+require('datatables.net')(window, $);
+require('datatables.net-bs4')(window, $);
+
 let appData = new AppData();
 let isLoadingCancel = false;
 
@@ -15,49 +18,26 @@ const showStudyList = (studylist) => {
 		return;
 	}
 
-	let domElmt = document.getElementById('study-list');
+	let data = [];
+	let len = studylist.length;
+	for (let i = 0; i < len; ++i) {
+		let item = [];
+		item.push(`${i + 1}`);
+		item.push(studylist[i].patInfo.id);
+		item.push(studylist[i].patInfo.name);
+		item.push(studylist[i].patInfo.getAge());
+		item.push(studylist[i].patInfo.sex);
+		item.push(studylist[i].modal);
+		item.push(studylist[i].desc);
+		item.push(Utils.getDateStringWithHypens(studylist[i].date));
+		item.push(`${studylist[i].bodypart}`);
+		item.push(`${studylist[i].seriesInfos.length}`);
+		item.push(`${studylist[i].getImageCount().toString()}`);
 
-	let htmlString = `
-        <table class='table table-hover'>
-            <thead class='thead-dark'>
-                <tr>
-                <th scope="col">#</th>
-                <th scope="col">ID</th>
-                <th scope="col">Name</th>
-                <th scope="col">Age</th>
-                <th scope="col">Sex</th>
-                <th scope="col">Modality</th>
-                <th scope="col">Study Name</th>
-                <th scope="col">Study Date</th>
-                <th scope="col">Bodypart</th>
-                <th scope="col">Series</th>
-                <th scope="col">Images</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-	let i = 0;
-	for (let study of studylist) {
-		htmlString += `
-            <tr>
-                <th scope="row">${++i}</th>
-                <td>${study.patInfo.id}</td>
-                <td>${study.patInfo.name}</td>
-                <td>${study.patInfo.getAge()}</td>
-                <td>${study.patInfo.sex}</td>
-                <td>${study.modal}</td>
-                <td>${study.desc}</td>
-                <td>${study.date}</td>
-                <td>${study.bodypart}</td>
-                <td>${study.seriesInfos.length}</td>
-                <td>${study.getImageCount()}</td>
-            </tr>
-        `;
+		data.push(item);
 	}
-	htmlString += `</tbody></table>`;
-
-	domElmt.innerHTML = htmlString;
+	document.getElementById('table-information').innerHTML = `Total: ${len} Studies`;
+	$('#study-datatable').DataTable().clear().rows.add(data).draw();
 };
 
 const updateProgressbar = (progressbar, strPercent) => {
@@ -91,41 +71,6 @@ document.getElementById('selFolder').addEventListener('click', (event) => {
 				modalBtn.setAttribute('params', filenames.toString());
 
 				modalBtn.click();
-				// // modal initialization
-				// const modalLabel = document.getElementById('exampleModalLabel');
-				// modalLabel.innerHTML = `Parsing...(${filePaths[0]})`;
-
-				// const modalProgressbar = document.getElementById('modal-progressbar');
-				// updateProgressbar(modalProgressbar, '0%');
-
-				// // show modal
-				// document.getElementById('show-modal').click();
-
-				// // global data initialization
-				// appData.clear();
-				// isLoadingCancel = false;
-				// const total = filenames.length;
-
-				// // parsing files
-				// for (let i = 0; i < total; ++i) {
-				// 	const dcmDS = await Utils.getDicomDataSet(filenames[i]);
-				// 	let temp = appData.findOrCreatePatient(dcmDS);
-				// 	temp = appData.findOrCreateStudy(dcmDS, temp);
-				// 	temp = appData.findOrCreateSeries(dcmDS, temp);
-				// 	appData.findOrCreateDcmImage(dcmDS, temp, filenames[i]);
-
-				// 	if (isLoadingCancel) {
-				// 		break;
-				// 	}
-
-				// 	updateProgressbar(modalProgressbar, Math.floor(i * 100 / total) + '%');
-				// }
-				// // if not cancel, then close modal
-				// if (!isLoadingCancel) {
-				// 	document.getElementById('modal-close').click();
-				// }
-				// // show studylist
-				// showStudyList(appData.studyList);
 			}
 		});
 	});
@@ -139,6 +84,7 @@ $('#exampleModal').on('shown.bs.modal', async () => {
 	// Get filenames from the hidden modal button
 	const modalBtn = document.getElementById('show-modal');
 	const filenames = modalBtn.getAttribute('params').split(',');
+	modalBtn.setAttribute('params', '');
 	//console.log(filenames);
 
 	// global data initialization
@@ -178,6 +124,28 @@ document.getElementById('modal-cancel').addEventListener('click', (event) => {
 	isLoadingCancel = true;
 });
 
-// $(document).ready(() => {
-// 	console.log('Document loading done!!!');
-// });
+$(document).ready(() => {
+	console.log('Document loading done!!!');
+
+	$('#study-datatable').DataTable({
+		scrollY: '400px',
+		scrollCollapse: false,
+		paging: false,
+		//dom: "<'row'<'pb-3 col-sm-12 col-md-6'i><'pt-2 col-sm-12 col-md-6'f>>t"
+		dom: 't'
+	});
+
+	$('#study-datatable tbody').on('click', 'tr', (event) => {
+		//console.log(event);
+
+		const selRow = event.currentTarget;
+		if ($(selRow).hasClass('selected')) {
+			$(selRow).removeClass('selected');
+			console.log('removeClass');
+		} else {
+			$('#study-datatable tbody tr.selected').removeClass('selected');
+			$(selRow).addClass('selected');
+			console.log('addClass');
+		}
+	});
+});
