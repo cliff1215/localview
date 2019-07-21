@@ -76,49 +76,6 @@ document.getElementById('selFolder').addEventListener('click', (event) => {
 	});
 });
 
-$('#exampleModal').on('shown.bs.modal', async () => {
-	// modal-progressbar initialization
-	const modalProgressbar = document.getElementById('modal-progressbar');
-	updateProgressbar(modalProgressbar, '0%');
-
-	// Get filenames from the hidden modal button
-	const modalBtn = document.getElementById('show-modal');
-	const filenames = modalBtn.getAttribute('params').split(',');
-	modalBtn.setAttribute('params', '');
-	//console.log(filenames);
-
-	// global data initialization
-	appData.clear();
-	isLoadingCancel = false;
-	const total = filenames.length;
-
-	// parsing files
-	for (let i = 0, valnow = 0, valmod = 0; i < total; ++i) {
-		const dcmDS = await Utils.getDicomDataSet(filenames[i]);
-		let temp = appData.findOrCreatePatient(dcmDS);
-		temp = appData.findOrCreateStudy(dcmDS, temp);
-		temp = appData.findOrCreateSeries(dcmDS, temp);
-		appData.findOrCreateDcmImage(dcmDS, temp, filenames[i]);
-
-		if (isLoadingCancel) {
-			break;
-		}
-		valnow = Math.floor((i + 1) * 100 / total);
-		valmod = valnow % 10;
-		if (valmod === 0 || valmod === 5) {
-			updateProgressbar(modalProgressbar, valnow + '%');
-		}
-	}
-	// if not cancel, then close modal
-	if (!isLoadingCancel) {
-		document.getElementById('modal-close').click();
-	}
-
-	updateProgressbar(modalProgressbar, '0%');
-	// show studylist
-	showStudyList(appData.studyList);
-});
-
 document.getElementById('modal-cancel').addEventListener('click', (event) => {
 	console.log('click modal cancel button');
 	isLoadingCancel = true;
@@ -147,5 +104,48 @@ $(document).ready(() => {
 			$(selRow).addClass('selected');
 			console.log('addClass');
 		}
+	});
+
+	$('#exampleModal').on('shown.bs.modal', async () => {
+		// modal-progressbar initialization
+		const modalProgressbar = document.getElementById('modal-progressbar');
+		updateProgressbar(modalProgressbar, '0%');
+
+		// Get filenames from the hidden modal button
+		const modalBtn = document.getElementById('show-modal');
+		const filenames = modalBtn.getAttribute('params').split(',');
+		modalBtn.setAttribute('params', '');
+		//console.log(filenames);
+
+		// global data initialization
+		appData.clear();
+		isLoadingCancel = false;
+		const total = filenames.length;
+
+		// parsing files
+		for (let i = 0, valnow = 0, valmod = 0; i < total; ++i) {
+			const dcmDS = await Utils.getDicomDataSet(filenames[i]);
+			let temp = appData.findOrCreatePatient(dcmDS);
+			temp = appData.findOrCreateStudy(dcmDS, temp);
+			temp = appData.findOrCreateSeries(dcmDS, temp);
+			appData.findOrCreateDcmImage(dcmDS, temp, filenames[i]);
+
+			if (isLoadingCancel) {
+				break;
+			}
+			valnow = Math.floor((i + 1) * 100 / total);
+			valmod = valnow % 10;
+			if (valmod === 0 || valmod === 5) {
+				updateProgressbar(modalProgressbar, valnow + '%');
+			}
+		}
+		// if not cancel, then close modal
+		if (!isLoadingCancel) {
+			document.getElementById('modal-close').click();
+		}
+
+		updateProgressbar(modalProgressbar, '0%');
+		// show studylist
+		showStudyList(appData.studyList);
 	});
 });
