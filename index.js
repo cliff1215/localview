@@ -1,8 +1,13 @@
-const glob = require('glob');
 const { dialog } = require('electron').remote;
+const path = require('path');
+const glob = require('glob');
 
-const Utils = require('./classes/Utils');
-const AppData = require('./classes/AppData');
+window.cornerstone = require('cornerstone-core');
+window.cornerstoneWADOImageLoader = require('cornerstone-wado-image-loader');
+window.cornerstoneTools = require('cornerstone-tools');
+const cornerstoneMath = require('cornerstone-math');
+const hammer = require('hammerjs');
+const dicomParser = require('dicom-parser');
 
 window.$ = window.jQuery = require('jquery');
 window.Bootstrap = require('bootstrap');
@@ -10,8 +15,75 @@ window.Bootstrap = require('bootstrap');
 require('datatables.net')(window, $);
 require('datatables.net-bs4')(window, $);
 
+const Utils = require('./classes/Utils');
+const AppData = require('./classes/AppData');
+
 let appData = new AppData();
 let isLoadingCancel = false;
+let thumbData = {
+	domElements: null,
+	dcmImages: null,
+	clear() {
+		this.domElements = [];
+		this.domElements = null;
+		this.dcmImages = [];
+		this.dcmImages = null;
+	}
+};
+
+const initCornerstoneWADOImageLoader = () => {
+	cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
+	cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
+
+	cornerstoneWADOImageLoader.configure({
+		useWebWorkers: true
+	});
+
+	if (!cornerstoneWADOImageLoader.initialized) {
+		cornerstoneWADOImageLoader.webWorkerManager.initialize({
+			maxWebWorkers: 4,
+			startWebWorkersOnDemand: true,
+			webWorkerPath: path.join(__dirname, 'cornerstoneWADOImageLoaderWebWorker.js'),
+			webWorkerTaskPaths: [],
+			taskConfiguration: {
+				decodeTask: {
+					loadCodecsOnStartup: true,
+					initializeCodecsOnStartup: false,
+					codecsPath: path.join(__dirname, 'cornerstoneWADOImageLoaderCodecs.js'),
+					usePDFJS: false,
+					strict: true
+				}
+			}
+		});
+		cornerstoneWADOImageLoader.initialized = true;
+	}
+};
+
+const initCornerstoneTools = () => {
+	cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
+	cornerstoneTools.external.cornerstone = cornerstone;
+	cornerstoneTools.external.Hammer = hammer;
+
+	cornerstoneTools.init({
+		globalToolSyncEnabled: true
+	});
+	const WwwcTool = cornerstoneTools.WwwcTool;
+	const ZoomTool = cornerstoneTools.ZoomTool;
+	const PanTool = cornerstoneTools.PanTool;
+	// const StackScrollMouseWheelTool =
+	//   cornerstoneTools.StackScrollMouseWheelTool;
+	//const ZoomMouseWheelTool = cornerstoneTools.ZoomMouseWheelTool;
+	cornerstoneTools.addTool(WwwcTool);
+	cornerstoneTools.addTool(ZoomTool);
+	cornerstoneTools.addTool(PanTool);
+	//cornerstoneTools.addTool(StackScrollMouseWheelTool);
+	//cornerstoneTools.addTool(ZoomMouseWheelTool);
+	cornerstoneTools.setToolActive('Wwwc', { mouseButtonMask: 2 });
+	cornerstoneTools.setToolActive('Zoom', { mouseButtonMask: 4 });
+	cornerstoneTools.setToolActive('Pan', { mouseButtonMask: 1 });
+	//cornerstoneTools.setToolActive("StackScrollMouseWheel", {});
+	//cornerstoneTools.setToolActive("ZoomMouseWheel", {});
+};
 
 const showStudyList = (studylist) => {
 	if (!studylist.length) {
@@ -38,6 +110,86 @@ const showStudyList = (studylist) => {
 	}
 	document.getElementById('table-information').innerHTML = `Total: ${len} Studies`;
 	$('#study-datatable').DataTable().clear().rows.add(data).draw();
+};
+
+const loadAndViewImage = (dcmImage, elmt) => {
+	cornerstone.loadAndCacheImage(dcmImage.imageID, { usePDFJS: false }).then((image) => {
+		//cornerstone.loadImage(dcmImage.imageID, { usePDFJS: false }).then((image) => {
+		//console.log(image);
+
+		cornerstone.displayImage(elmt, image);
+		console.log(cornerstone.getEnabledElement(elmt).viewport);
+		dcmImage.isLoaded = true;
+
+		// cornerstoneTools.addStackStateManager(elmt, ["stack"]);
+		// cornerstoneTools.addToolState(elmt, "stack", g_data);
+		//const element = document.getElementById('currentFileName');
+		//element.innerHTML = g_data.files[g_data.currentIdx].name;
+
+		//g_data.loaded = true;
+	}, function(err) {
+		alert(err);
+	});
+};
+
+const getThumbnailElements = (parentElmtID, thumbCnt) => {
+	let thumbPanel = document.getElementById(parentElmtID);
+	if (!thumbPanel) {
+		return null;
+	}
+
+	let strHtml = '';
+	let i;
+	for (i = 0; i < thumbCnt; ++i) {
+		strHtml += `<div id='thumb${i}' class='rounded d-inline-flex ml-2' style='width: 200px; height: 200px; background-color: black;'></div>`;
+	}
+	thumbPanel.innerHTML = strHtml;
+
+	let thumbElmts = [];
+	for (i = 0; i < thumbCnt; ++i) {
+		let elmt = document.getElementById(`thumb${i}`);
+		thumbElmts.push(elmt);
+	}
+	return thumbElmts;
+};
+
+const clearThumbnailData = () => {
+	if (!thumbData.domElements) {
+		return;
+	}
+
+	for (let element of thumbData.domElements) {
+		cornerstone.disable(element);
+	}
+	cornerstoneWADOImageLoader.wadouri.fileManager.purge();
+	cornerstone.imageCache.purgeCache();
+	thumbData.clear();
+};
+
+const showThumbnailImages = (studyIdx) => {
+	clearThumbnailData();
+
+	thumbData.dcmImages = appData.getThumbnailImages(studyIdx);
+	if (!thumbData.dcmImages) {
+		return;
+	}
+	const len = thumbData.dcmImages.length;
+	thumbData.domElements = getThumbnailElements('thumbnail-panel', len);
+	if (!thumbData.domElements) {
+		return;
+	}
+	for (let thumbElmt of thumbData.domElements) {
+		//cornerstone.enable(thumbElmt, { renderer: 'webgl' });
+		cornerstone.enable(thumbElmt);
+	}
+
+	for (let i = 0; i < len; ++i) {
+		const dcmImage = thumbData.dcmImages[i];
+		const fileObj = dcmImage.getFileObject();
+		const id = cornerstoneWADOImageLoader.wadouri.fileManager.add(fileObj);
+		dcmImage.imageID = id;
+		loadAndViewImage(dcmImage, thumbData.domElements[i]);
+	}
 };
 
 const updateProgressbar = (progressbar, strPercent) => {
@@ -83,6 +235,8 @@ document.getElementById('modal-cancel').addEventListener('click', (event) => {
 
 $(document).ready(() => {
 	console.log('Document loading done!!!');
+	initCornerstoneWADOImageLoader();
+	initCornerstoneTools();
 
 	$('#study-datatable').DataTable({
 		scrollY: '400px',
@@ -102,7 +256,11 @@ $(document).ready(() => {
 		} else {
 			$('#study-datatable tbody tr.selected').removeClass('selected');
 			$(selRow).addClass('selected');
-			console.log('addClass');
+
+			let data = $('#study-datatable').DataTable().row(selRow).data();
+			let index = parseInt(data[0]) - 1;
+			console.log(index);
+			showThumbnailImages(index);
 		}
 	});
 

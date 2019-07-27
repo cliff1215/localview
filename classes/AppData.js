@@ -16,6 +16,14 @@ class AppData {
 		this.studyList = [];
 	}
 
+	getThumbnailImages(studyIndex) {
+		if (studyIndex < 0 || studyIndex >= this.studyList.length) {
+			return null;
+		}
+
+		return this.studyList[studyIndex].getThumbImages();
+	}
+
 	/**
      * find patient in the 'patList' by using patient id and name, 
      * and return the patient object if found, otherwise return null
@@ -74,7 +82,7 @@ class AppData {
 
 		let dcmImage = AppData.findInfo(series.dcmImageInfos, instUID);
 		if (!dcmImage) {
-			dcmImage = new DcmImage(dcmDS, series, series.dcmImageInfos.length);
+			dcmImage = new DcmImage(dcmDS, filename, series, series.dcmImageInfos.length);
 			AppData.addInfo(series.dcmImageInfos, dcmImage);
 		}
 		return dcmImage;

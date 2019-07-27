@@ -1,8 +1,11 @@
+const fs = require('fs');
 const DcmElmt = require('./DicomElement');
 
 class DcmImage {
 	constructor(dcmDS, filename, seriesInfo = null, tag = -1) {
 		this.filename = filename;
+		this.fileObject = null;
+
 		this.seriesInfo = seriesInfo;
 		this.tag = tag;
 
@@ -20,7 +23,23 @@ class DcmImage {
 		this.winWidth = dcmDS.string(DcmElmt.WindowWidth.Tag);
 		this.winCenter = dcmDS.string(DcmElmt.WindowCenter.Tag);
 
+		// The ID comes from cornerstone-wado-image-loader, format `dicomfile:${fileIndex - 1}`
+		this.imageID = '';
+
 		this.isLoaded = false;
+	}
+
+	getFileObject() {
+		if (!this.filename || this.filename.length === 0) {
+			return null;
+		}
+		if (this.fileObject) {
+			return this.fileObject;
+		}
+
+		const data = fs.readFileSync(this.filename);
+		this.fileObject = new File([ data ], this.filename);
+		return this.fileObject;
 	}
 }
 
