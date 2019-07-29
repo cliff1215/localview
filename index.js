@@ -161,8 +161,6 @@ const clearThumbnailData = () => {
 	for (let element of thumbData.domElements) {
 		cornerstone.disable(element);
 	}
-	cornerstoneWADOImageLoader.wadouri.fileManager.purge();
-	cornerstone.imageCache.purgeCache();
 	thumbData.clear();
 };
 
@@ -179,15 +177,16 @@ const showThumbnailImages = (studyIdx) => {
 		return;
 	}
 	for (let thumbElmt of thumbData.domElements) {
-		//cornerstone.enable(thumbElmt, { renderer: 'webgl' });
-		cornerstone.enable(thumbElmt);
+		cornerstone.enable(thumbElmt, { renderer: 'webgl' });
+		//cornerstone.enable(thumbElmt);
 	}
 
 	for (let i = 0; i < len; ++i) {
 		const dcmImage = thumbData.dcmImages[i];
-		const fileObj = dcmImage.getFileObject();
-		const id = cornerstoneWADOImageLoader.wadouri.fileManager.add(fileObj);
-		dcmImage.imageID = id;
+		if (!dcmImage.imageID) {
+			const fileObj = dcmImage.getFileObject();
+			dcmImage.imageID = cornerstoneWADOImageLoader.wadouri.fileManager.add(fileObj);
+		}
 		loadAndViewImage(dcmImage, thumbData.domElements[i]);
 	}
 };
@@ -277,6 +276,12 @@ $(document).ready(() => {
 
 		// global data initialization
 		appData.clear();
+		clearThumbnailData();
+		getThumbnailElements('thumbnail-panel', 0);
+		cornerstoneWADOImageLoader.wadouri.fileManager.purge();
+		cornerstoneWADOImageLoader.wadouri.dataSetCacheManager.purge();
+		cornerstone.imageCache.purgeCache();
+
 		isLoadingCancel = false;
 		const total = filenames.length;
 
