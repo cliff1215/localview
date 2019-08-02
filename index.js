@@ -280,6 +280,7 @@ $(document).ready(() => {
 		getThumbnailElements('thumbnail-panel', 0);
 		cornerstoneWADOImageLoader.wadouri.fileManager.purge();
 		cornerstoneWADOImageLoader.wadouri.dataSetCacheManager.purge();
+		cornerstone.webGL.textureCache.purgeCache();
 		cornerstone.imageCache.purgeCache();
 
 		isLoadingCancel = false;
