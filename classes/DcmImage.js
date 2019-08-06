@@ -1,4 +1,4 @@
-const fs = require('fs');
+const Utils = require('./Utils');
 const DcmElmt = require('./DicomElement');
 
 class DcmImage {
@@ -29,7 +29,7 @@ class DcmImage {
 		this.isLoaded = false;
 	}
 
-	getFileObject() {
+	async getFileObject() {
 		if (!this.filename || this.filename.length === 0) {
 			return null;
 		}
@@ -37,7 +37,8 @@ class DcmImage {
 			return this.fileObject;
 		}
 
-		const data = fs.readFileSync(this.filename);
+		//const data = fs.readFileSync(this.filename);
+		const data = await Utils.loadFile(this.filename);
 		this.fileObject = new File([ data ], this.filename);
 		return this.fileObject;
 	}

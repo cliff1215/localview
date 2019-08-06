@@ -1,13 +1,5 @@
 const { dialog } = require('electron').remote;
-const path = require('path');
 const glob = require('glob');
-
-window.cornerstone = require('cornerstone-core');
-window.cornerstoneWADOImageLoader = require('cornerstone-wado-image-loader');
-window.cornerstoneTools = require('cornerstone-tools');
-const cornerstoneMath = require('cornerstone-math');
-const hammer = require('hammerjs');
-const dicomParser = require('dicom-parser');
 
 window.$ = window.jQuery = require('jquery');
 window.Bootstrap = require('bootstrap');
@@ -15,6 +7,7 @@ window.Bootstrap = require('bootstrap');
 require('datatables.net')(window, $);
 require('datatables.net-bs4')(window, $);
 
+const csUtils = require('./classes/CornerstoneUtils');
 const Utils = require('./classes/Utils');
 const AppData = require('./classes/AppData');
 
@@ -29,60 +22,6 @@ let thumbData = {
 		this.dcmImages = [];
 		this.dcmImages = null;
 	}
-};
-
-const initCornerstoneWADOImageLoader = () => {
-	cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
-	cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
-
-	cornerstoneWADOImageLoader.configure({
-		useWebWorkers: true
-	});
-
-	if (!cornerstoneWADOImageLoader.initialized) {
-		cornerstoneWADOImageLoader.webWorkerManager.initialize({
-			maxWebWorkers: 4,
-			startWebWorkersOnDemand: true,
-			webWorkerPath: path.join(__dirname, 'cornerstoneWADOImageLoaderWebWorker.js'),
-			webWorkerTaskPaths: [],
-			taskConfiguration: {
-				decodeTask: {
-					loadCodecsOnStartup: true,
-					initializeCodecsOnStartup: false,
-					codecsPath: path.join(__dirname, 'cornerstoneWADOImageLoaderCodecs.js'),
-					usePDFJS: false,
-					strict: true
-				}
-			}
-		});
-		cornerstoneWADOImageLoader.initialized = true;
-	}
-};
-
-const initCornerstoneTools = () => {
-	cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
-	cornerstoneTools.external.cornerstone = cornerstone;
-	cornerstoneTools.external.Hammer = hammer;
-
-	cornerstoneTools.init({
-		globalToolSyncEnabled: true
-	});
-	const WwwcTool = cornerstoneTools.WwwcTool;
-	const ZoomTool = cornerstoneTools.ZoomTool;
-	const PanTool = cornerstoneTools.PanTool;
-	// const StackScrollMouseWheelTool =
-	//   cornerstoneTools.StackScrollMouseWheelTool;
-	//const ZoomMouseWheelTool = cornerstoneTools.ZoomMouseWheelTool;
-	cornerstoneTools.addTool(WwwcTool);
-	cornerstoneTools.addTool(ZoomTool);
-	cornerstoneTools.addTool(PanTool);
-	//cornerstoneTools.addTool(StackScrollMouseWheelTool);
-	//cornerstoneTools.addTool(ZoomMouseWheelTool);
-	cornerstoneTools.setToolActive('Wwwc', { mouseButtonMask: 2 });
-	cornerstoneTools.setToolActive('Zoom', { mouseButtonMask: 4 });
-	cornerstoneTools.setToolActive('Pan', { mouseButtonMask: 1 });
-	//cornerstoneTools.setToolActive("StackScrollMouseWheel", {});
-	//cornerstoneTools.setToolActive("ZoomMouseWheel", {});
 };
 
 const showStudyList = (studylist) => {
@@ -112,26 +51,6 @@ const showStudyList = (studylist) => {
 	$('#study-datatable').DataTable().clear().rows.add(data).draw();
 };
 
-const loadAndViewImage = (dcmImage, elmt) => {
-	cornerstone.loadAndCacheImage(dcmImage.imageID, { usePDFJS: false }).then((image) => {
-		//cornerstone.loadImage(dcmImage.imageID, { usePDFJS: false }).then((image) => {
-		//console.log(image);
-
-		cornerstone.displayImage(elmt, image);
-		console.log(cornerstone.getEnabledElement(elmt).viewport);
-		dcmImage.isLoaded = true;
-
-		// cornerstoneTools.addStackStateManager(elmt, ["stack"]);
-		// cornerstoneTools.addToolState(elmt, "stack", g_data);
-		//const element = document.getElementById('currentFileName');
-		//element.innerHTML = g_data.files[g_data.currentIdx].name;
-
-		//g_data.loaded = true;
-	}, function(err) {
-		alert(err);
-	});
-};
-
 const getThumbnailElements = (parentElmtID, thumbCnt) => {
 	let thumbPanel = document.getElementById(parentElmtID);
 	if (!thumbPanel) {
@@ -157,14 +76,11 @@ const clearThumbnailData = () => {
 	if (!thumbData.domElements) {
 		return;
 	}
-
-	for (let element of thumbData.domElements) {
-		cornerstone.disable(element);
-	}
+	csUtils.disableElements(thumbData.domElements);
 	thumbData.clear();
 };
 
-const showThumbnailImages = (studyIdx) => {
+const showThumbnailImages = async (studyIdx) => {
 	clearThumbnailData();
 
 	thumbData.dcmImages = appData.getThumbnailImages(studyIdx);
@@ -177,17 +93,16 @@ const showThumbnailImages = (studyIdx) => {
 		return;
 	}
 	for (let thumbElmt of thumbData.domElements) {
-		cornerstone.enable(thumbElmt, { renderer: 'webgl' });
-		//cornerstone.enable(thumbElmt);
+		csUtils.enableElement(thumbElmt);
 	}
 
 	for (let i = 0; i < len; ++i) {
 		const dcmImage = thumbData.dcmImages[i];
 		if (!dcmImage.imageID) {
-			const fileObj = dcmImage.getFileObject();
-			dcmImage.imageID = cornerstoneWADOImageLoader.wadouri.fileManager.add(fileObj);
+			const fileObj = await dcmImage.getFileObject();
+			dcmImage.imageID = csUtils.getImageID(fileObj);
 		}
-		loadAndViewImage(dcmImage, thumbData.domElements[i]);
+		csUtils.loadAndViewImage(dcmImage, thumbData.domElements[i]);
 	}
 };
 
@@ -234,8 +149,8 @@ document.getElementById('modal-cancel').addEventListener('click', (event) => {
 
 $(document).ready(() => {
 	console.log('Document loading done!!!');
-	initCornerstoneWADOImageLoader();
-	initCornerstoneTools();
+
+	csUtils.init();
 
 	$('#study-datatable').DataTable({
 		scrollY: '400px',
@@ -278,10 +193,7 @@ $(document).ready(() => {
 		appData.clear();
 		clearThumbnailData();
 		getThumbnailElements('thumbnail-panel', 0);
-		cornerstoneWADOImageLoader.wadouri.fileManager.purge();
-		cornerstoneWADOImageLoader.wadouri.dataSetCacheManager.purge();
-		cornerstone.webGL.textureCache.purgeCache();
-		cornerstone.imageCache.purgeCache();
+		csUtils.clear();
 
 		isLoadingCancel = false;
 		const total = filenames.length;

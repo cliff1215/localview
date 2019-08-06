@@ -2,13 +2,6 @@ const Utils = require('./Utils');
 const DcmElmt = require('./DicomElement');
 
 class Patient {
-	// constructor(id, name, gender, birthdate) {
-	// 	this.id = id;
-	// 	this.name = name;
-	// 	this.gender = gender;
-	// 	this.birthdate = birthdate; // string: format "yyyymmdd"
-	// 	this.studies = [];
-	// }
 	/**
      * Creates an instance of Patient.
      * @param {DicomDataSet} dcmDS - DicomDataSet from dicom-parser module

@@ -27,8 +27,8 @@ class Utils {
 	}
 
 	static async getDicomDataSet(filename) {
-		let dcmData = await Utils.loadFile(filename);
-		let byteArray = new Uint8Array(dcmData);
+		const dcmData = await Utils.loadFile(filename);
+		const byteArray = new Uint8Array(dcmData);
 		return dcmParser.parseDicom(byteArray);
 	}
 }

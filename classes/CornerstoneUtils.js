@@ -1,6 +1,7 @@
 const cornerstoneMath = require('cornerstone-math');
 const hammer = require('hammerjs');
 const dicomParser = require('dicom-parser');
+const path = require('path');
 
 class CornerstoneUtils {
 	static init() {
@@ -19,28 +20,19 @@ class CornerstoneUtils {
 		cornerstone.imageCache.purgeCache();
 	}
 
-	static disableAllElements() {
-		const enabledElements = cornerstone.getEnabledElements();
-		const length = enabledElements.length;
-
-		for (let i = 0; i < length; ++i) {
-			if (enabledElements[i].element) {
-				const element = enabledElements[i].element;
-				const eventData = {
-					element
-				};
-				cornerstone.triggerEvent(element, cornerstone.EVENTS.ELEMENT_DISABLED, eventData);
-				cornerstone.triggerEvent(cornerstone.events, cornerstone.EVENTS.ELEMENT_DISABLED, eventData);
-
-				enabledElements[i].element.removeChild(enabledElements[i].canvas);
-				enabledElements[i].canvas = undefined;
-			}
+	static disableElements(elements) {
+		for (let i = elements.length - 1; i >= 0; --i) {
+			cornerstone.disable(elements[i]);
 		}
-		enabledElements = [];
+		console.log(cornerstone.getEnabledElements().length);
 	}
 
 	static enableElement(element) {
 		cornerstone.enable(element, { renderer: 'webgl' });
+	}
+
+	static getImageID(fileObject) {
+		return cornerstoneWADOImageLoader.wadouri.fileManager.add(fileObject);
 	}
 
 	static loadAndViewImage(dcmImage, element) {
